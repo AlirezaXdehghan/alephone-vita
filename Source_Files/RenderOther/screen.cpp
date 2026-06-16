@@ -970,8 +970,20 @@ static void change_screen_mode(int width, int height, int depth, bool nogl, bool
 #if defined (__WIN32__) && (HAVE_OPENGL)
 		glewInit();
 #endif
+#if defined(HAVE_VITAGL)
+		static bool vgl_started = false;
+		if (!vgl_started) {
+			vglInitExtended(0, 960, 544, 0x1000000, SCE_GXM_MULTISAMPLE_NONE);
+			vglUseVram(GL_TRUE);
+			vgl_started = true;
+		}
+		passed_shader = true;
+		if (false)
+		{
+#else
 		if (!OGL_CheckExtension("GL_ARB_vertex_shader") || !OGL_CheckExtension("GL_ARB_fragment_shader") || !OGL_CheckExtension("GL_ARB_shader_objects") || !OGL_CheckExtension("GL_ARB_shading_language_100"))
 		{
+#endif
 			logWarning("OpenGL (Shader) renderer is not available");
 			fprintf(stderr, "WARNING: Failed to initialize OpenGL renderer\n");
 			fprintf(stderr, "WARNING: Retrying with Software renderer\n");

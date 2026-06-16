@@ -29,7 +29,10 @@
 
 #ifdef HAVE_OPENGL
 
-#ifdef __WIN32__
+#if defined(__vita__)
+#include <vitaGL.h>
+
+#elif defined(__WIN32__)
 
 #define GLEW_STATIC 1
 #include <GL/glew.h>

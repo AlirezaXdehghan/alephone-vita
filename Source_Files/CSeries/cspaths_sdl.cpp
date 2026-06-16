@@ -162,6 +162,71 @@ std::string get_application_identifier()
 	return std::string("org.bungie.source.AlephOne");
 }
 
+#elif defined(__vita__)
+
+// PlayStation Vita
+//
+// Everything lives under ux0:data/AlephOne. The game data (Marathon Shapes/
+// Sounds/Maps WADs, MML, etc.) is expected at ux0:data/AlephOne, alongside the
+// writable Prefs/Saved Games/etc. We use ';' as the search-path separator
+
+#define A1_VITA_ROOT "ux0:data/AlephOne"
+
+char get_path_list_separator()
+{
+	return ';';
+}
+
+static std::string _get_local_data_path()
+{
+	return std::string(A1_VITA_ROOT);
+}
+
+std::string get_data_path(CSPathType type)
+{
+	std::string path = "";
+
+	switch (type) {
+		case kPathLocalData:
+		case kPathLogs:
+		case kPathPreferences:
+		case kPathDefaultData:
+			path = _get_local_data_path();
+			break;
+		case kPathLegacyData:
+		case kPathBundleData:
+		case kPathLegacyPreferences:
+			// not applicable
+			break;
+		case kPathScreenshots:
+			path = _get_local_data_path() + "/Screenshots";
+			break;
+		case kPathSavedGames:
+			path = _get_local_data_path() + "/Saved Games";
+			break;
+		case kPathQuickSaves:
+			path = _get_local_data_path() + "/Quick Saves";
+			break;
+		case kPathImageCache:
+			path = _get_local_data_path() + "/Image Cache";
+			break;
+		case kPathRecordings:
+			path = _get_local_data_path() + "/Recordings";
+			break;
+	}
+	return path;
+}
+
+std::string get_application_name()
+{
+	return std::string(A1_DISPLAY_NAME);
+}
+
+std::string get_application_identifier()
+{
+	return std::string("org.bungie.source.AlephOne");
+}
+
 #else
 
 // Linux and compatible

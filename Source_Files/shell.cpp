@@ -232,6 +232,19 @@ void initialize_application(void)
 	SDL_setenv("SDL_AUDIODRIVER", "directsound", 0);
 #endif
 
+#ifdef __vita__
+	// Raise CPU/GPU/bus clocks to the userland maximum (like re3-vita).
+	extern "C" void vita_platform_init(void);
+	vita_platform_init();
+
+	// Drive the menu mouse cursor from the front touchscreen: SDL synthesizes
+	// mouse-motion/button events from touch when this hint is set. (In-game look
+	// uses the right stick via the game controller, not the mouse.) Must be set
+	// before SDL_Init.
+	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "1");
+	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+#endif
+
 	// Initialize SDL
 	int retval = SDL_Init(SDL_INIT_VIDEO |
 						  (shell_options.nosound ? 0 : SDL_INIT_AUDIO) |
@@ -542,6 +555,11 @@ void initialize_application(void)
 		graphics_preferences->screen_mode.fullscreen = true;
 	if (shell_options.force_windowed)		// takes precedence over fullscreen because windowed is safer
 		graphics_preferences->screen_mode.fullscreen = false;
+#ifdef __vita__
+	// The Vita has a single fixed 960x544 display and no desktop-fullscreen
+	// force the safe windowed path so we avoid SDL_WINDOW_FULLSCREEN.
+	graphics_preferences->screen_mode.fullscreen = false;
+#endif
 	write_preferences();
 
 	Plugins::instance()->load_mml(true);
@@ -560,7 +578,9 @@ void initialize_application(void)
 		throw std::runtime_error(oss.str());
 	}
 	
+#if !defined(DISABLE_NETWORKING)
 	HTTPClient::Init();
+#endif
 
 	// Initialize everything
 	mytm_initialize();

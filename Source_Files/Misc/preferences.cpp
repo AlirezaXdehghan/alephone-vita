@@ -185,7 +185,7 @@ static void keyboard_dialog(void *arg);
 
 static std::string get_name_from_system()
 {
-#if defined(unix) || (defined (__APPLE__) && defined (__MACH__)) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if (defined(unix) || (defined (__APPLE__) && defined (__MACH__)) || defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(__vita__)
 
 	const char *login_name = getlogin();
 	std::string login = (login_name ? login_name : "");
@@ -4235,7 +4235,30 @@ static void default_input_preferences(input_preferences_data *preferences)
 	preferences->key_bindings = default_key_bindings;
 	preferences->shell_key_bindings = default_shell_key_bindings;
 	preferences->hotkey_bindings = default_hotkey_bindings;
-	
+
+#ifdef __vita__
+	// The PS Vita has no analog triggers, but the desktop defaults bind primary/
+	// secondary fire to TRIGGERRIGHT/TRIGGERLEFT — unreachable on a Vita. Remap to
+	// the Vita's physical button set so the game is playable as shipped:
+	//   left stick = move/strafe, right stick = look (unchanged),
+	//   R / L shoulders = primary / secondary fire,
+	//   Triangle / Square = previous / next weapon,
+	//   Circle (B) = action/use.  (D-pad + A/B navigate menus via sdl_dialogs.)
+	auto vita_jbtn = [](int b) {
+		return static_cast<SDL_Scancode>(AO_SCANCODE_BASE_JOYSTICK_BUTTON + b);
+	};
+	// fire on the shoulder buttons (action 13 = primary, 14 = secondary)
+	preferences->key_bindings[13].insert(vita_jbtn(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+	preferences->key_bindings[14].insert(vita_jbtn(SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+	// shoulders were prev/next weapon by default — move those to the face buttons
+	preferences->key_bindings[11].erase(vita_jbtn(SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+	preferences->key_bindings[12].erase(vita_jbtn(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+	preferences->key_bindings[11].insert(vita_jbtn(SDL_CONTROLLER_BUTTON_Y));   // Triangle = prev weapon
+	preferences->key_bindings[12].insert(vita_jbtn(SDL_CONTROLLER_BUTTON_X));   // Square   = next weapon
+	// action / use key on Circle
+	preferences->key_bindings[15].insert(vita_jbtn(SDL_CONTROLLER_BUTTON_B));   // Circle   = action/use
+#endif
+
 	preferences->modifiers = _inputmod_use_button_sounds;
 
 	preferences->sens_horizontal = FIXED_ONE / 4;
